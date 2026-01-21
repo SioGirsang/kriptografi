@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEEKER - Kriptografi Translator</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="main.js" defer></script>
+</head>
+
+<body>
+    <!-- Custom Alert Modal -->
+    <div id="customAlert" class="cyber-modal">
+        <div class="cyber-modal-overlay"></div>
+        <div class="cyber-modal-content">
+            <div class="modal-header">
+                <span class="modal-icon" id="alertIcon">⚠️</span>
+                <h3 id="alertTitle">Peringatan</h3>
+            </div>
+            <div class="modal-body">
+                <p id="alertMessage">Pesan alert akan muncul di sini</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" onclick="closeAlert()">OK</button>
+            </div>
+            <div class="modal-decoration">
+                <span class="corner tl"></span>
+                <span class="corner tr"></span>
+                <span class="corner bl"></span>
+                <span class="corner br"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Animated Background -->
+    <div class="matrix-bg"></div>
+    <div class="cyber-grid"></div>
+
+    <!-- Floating Particles -->
+    <div class="particles">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <!-- Terminal Toggle Button -->
+    <button class="terminal-toggle-btn" onclick="toggleTerminal()" title="Lihat Proses Algoritma">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="4 17 10 11 4 5"></polyline>
+            <line x1="12" y1="19" x2="20" y2="19"></line>
+        </svg>
+    </button>
+
+    <!-- Terminal Panel -->
+    <div id="terminalPanel" class="terminal-panel">
+        <div class="terminal-overlay" onclick="toggleTerminal()"></div>
+        <div class="terminal-content">
+            <div class="terminal-header">
+                <span class="terminal-title">Process Terminal</span>
+                <button class="terminal-close" onclick="toggleTerminal()">×</button>
+            </div>
+            <div class="terminal-body" id="terminalBody">
+                <div class="terminal-welcome">
+                    <p class="terminal-line"><span class="prompt">$</span> <span class="cmd">Welcome to SEEKER Terminal</span></p>
+                    <p class="terminal-line"><span class="prompt">$</span> <span class="comment">// Jalankan enkripsi/dekripsi untuk melihat proses algoritma</span></p>
+                    <p class="terminal-line"><span class="prompt">$</span> <span class="cmd blink">_</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-wrapper">
+        <!-- Header Section -->
+        <header class="app-header">
+            <div class="logo-section">
+                <div class="logo-text">
+                    <h1>SEEKER</h1>
+                    <span class="tagline">Kriptografi Translator</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- Algorithm Selection Card -->
+            <div class="card algorithm-card">
+                <div class="card-header">
+                    <h3>Pilih Algoritma Cipher</h3>
+                </div>
+                <div class="card-body">
+                    <label class="select-label">Algoritma Enkripsi:</label>
+                    <div class="custom-select-wrapper">
+                        <select id="algorithm">
+                            <option value="additive">🔢 Additive Cipher (Caesar)</option>
+                            <option value="multiplicative">✖️ Multiplicative Cipher</option>
+                            <option value="polyalphabetic">🔤 Polyalphabetic Cipher (Vigenère)</option>
+                        </select>
+                        <span class="select-arrow">▼</span>
+                    </div>
+
+                    <div id="algorithmDescription" class="algo-description">
+                        <div class="algo-info additive-info">
+                            <h4>Additive Cipher</h4>
+                            <p>Menggeser setiap huruf dengan nilai kunci numerik tetap.</p>
+                            <span class="key-hint">💡 Kunci: Angka 0-25</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="encryption-panel">
+                <div class="panel-section input-section">
+                    <div class="section-header">
+                        <h3>Input Data</h3>
+                    </div>
+
+                    <div class="input-group">
+                        <label>
+                            <span class="label-icon">📄</span>
+                            Teks Input:
+                        </label>
+                        <div class="textarea-wrapper">
+                            <textarea id="inputText" rows="4"
+                                placeholder="Masukkan teks yang akan dienkripsi atau didekripsi..."></textarea>
+                            <div class="textarea-overlay">
+                                <span class="char-count">0 karakter</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>
+                            <span class="label-icon">🔑</span>
+                            Kunci Rahasia:
+                        </label>
+                        <div class="password-wrapper">
+                            <input type="text" id="password" placeholder="Masukkan kunci enkripsi..."
+                                oninput="validatePasswordInput()">
+                            <span class="key-indicator"></span>
+                        </div>
+                        <small id="passwordError" class="error-message"></small>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-section">
+                    <div class="btn-group">
+                        <button class="btn-encrypt" id="encryptButton">
+                            <span class="btn-text">ENKRIPSI</span>
+                            <span class="btn-subtitle">Plaintext → Ciphertext</span>
+                        </button>
+                        <button class="btn-decrypt" id="decryptButton">
+                            <span class="btn-text">DEKRIPSI</span>
+                            <span class="btn-subtitle">Ciphertext → Plaintext</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Output Section -->
+                <div class="panel-section output-section">
+                    <div class="section-header">
+                        <h3>Hasil Output</h3>
+                        <div class="output-actions">
+                            <button class="transfer-btn" onclick="transferToInput()" title="Kembalikan ke Input">
+                                Ke Input
+                            </button>
+                            <button class="copy-btn" onclick="copyResult()" title="Salin hasil">
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="output-wrapper">
+                        <div id="output" class="result-area">
+                            <span class="placeholder-text">Hasil enkripsi/dekripsi akan muncul di sini...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span>SEEKER</span>
+                </div>
+                <div class="footer-info">
+                    <p>Kriptografi Translator</p>
+                    <p class="footer-note">Classical Cipher: Additive • Multiplicative • Polyalphabetic</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Algorithm description toggle
+        document.getElementById('algorithm').addEventListener('change', function () {
+            const algo = this.value;
+            document.querySelectorAll('.algo-info').forEach(el => el.style.display = 'none');
+            document.querySelector('.' + algo + '-info').style.display = 'block';
+            document.getElementById('algorithmDescription').style.display = 'block';
+        });
+
+        // Character count
+        document.getElementById('inputText').addEventListener('input', function () {
+            document.querySelector('.char-count').textContent = this.value.length + ' karakter';
+        });
+
+        // Copy result function
+        function copyResult() {
+            const output = document.getElementById('output').innerText;
+            if (output && !output.includes('Hasil')) {
+                navigator.clipboard.writeText(output);
+                const btn = document.querySelector('.copy-btn');
+                btn.innerHTML = '<span></span>Copied!';
+                setTimeout(() => {
+                    btn.innerHTML = '<span>📋</span> Copy';
+                }, 2000);
+            }
+        }
+
+        // Transfer output to input function
+        function transferToInput() {
+            const output = document.getElementById('output').innerText;
+            const inputText = document.getElementById('inputText');
+            
+            if (output && !output.includes('Hasil')) {
+                inputText.value = output;
+                // Update character count
+                document.querySelector('.char-count').textContent = output.length + ' karakter';
+                
+                // Visual feedback
+                const btn = document.querySelector('.transfer-btn');
+                btn.innerHTML = 'Transferred!';
+                setTimeout(() => {
+                    btn.innerHTML = '<span></span>Ke Input';
+                }, 2000);
+                
+                // Scroll to input
+                inputText.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                inputText.focus();
+            } else {
+                showAlert('Tidak ada hasil untuk dipindahkan ke input!', 'warning', 'Hasil Kosong');
+            }
+        }
+
+        // Initialize algorithm description
+        document.getElementById('algorithmDescription').style.display = 'block';
+
+        // Custom Alert Functions
+        function showAlert(message, type = 'warning', title = 'Peringatan') {
+            const modal = document.getElementById('customAlert');
+            const alertIcon = document.getElementById('alertIcon');
+            const alertTitle = document.getElementById('alertTitle');
+            const alertMessage = document.getElementById('alertMessage');
+            const modalContent = document.querySelector('.cyber-modal-content');
+            
+            // Set icon and color based on type
+            modalContent.className = 'cyber-modal-content ' + type;
+            
+            if (type === 'error') {
+                alertIcon.textContent = '❌';
+                alertTitle.textContent = title || 'Error';
+            } else if (type === 'success') {
+                alertIcon.textContent = '✅';
+                alertTitle.textContent = title || 'Berhasil';
+            } else if (type === 'info') {
+                alertIcon.textContent = 'ℹ️';
+                alertTitle.textContent = title || 'Informasi';
+            } else {
+                alertIcon.textContent = '⚠️';
+                alertTitle.textContent = title || 'Peringatan';
+            }
+            
+            alertMessage.innerHTML = message;
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAlert() {
+            const modal = document.getElementById('customAlert');
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal on overlay click
+        document.querySelector('.cyber-modal-overlay').addEventListener('click', closeAlert);
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeAlert();
+        });
+
+        // Terminal Functions
+        let typingQueue = [];
+        let isTyping = false;
+        const typingSpeed = 15; // ms per character
+
+        function toggleTerminal() {
+            const panel = document.getElementById('terminalPanel');
+            panel.classList.toggle('show');
+        }
+
+        function clearTerminal() {
+            const terminalBody = document.getElementById('terminalBody');
+            terminalBody.innerHTML = '';
+            typingQueue = [];
+            isTyping = false;
+        }
+
+        function addTerminalLineInstant(content, type = 'output') {
+            const terminalBody = document.getElementById('terminalBody');
+            const line = document.createElement('p');
+            line.className = 'terminal-line';
+            
+            if (type === 'command') {
+                line.innerHTML = `<span class="prompt">$</span> <span class="cmd">${content}</span>`;
+            } else if (type === 'comment') {
+                line.innerHTML = `<span class="prompt">#</span> <span class="comment">${content}</span>`;
+            } else if (type === 'result') {
+                line.innerHTML = `<span class="prompt">➜</span> <span class="result">${content}</span>`;
+            } else if (type === 'step') {
+                line.innerHTML = `<span class="prompt">│</span> <span class="step">${content}</span>`;
+            } else if (type === 'final') {
+                line.innerHTML = `<span class="prompt">[✓]</span> <span class="final">${content}</span>`;
+            } else if (type === 'header') {
+                line.innerHTML = `<span class="header">${content}</span>`;
+            } else if (type === 'ascii') {
+                line.innerHTML = `<span class="ascii">${content}</span>`;
+            } else if (type === 'divider') {
+                line.innerHTML = `<span class="divider">${content || '═'.repeat(50)}</span>`;
+            } else if (type === 'box-top') {
+                line.innerHTML = `<span class="box">╔${'═'.repeat(48)}╗</span>`;
+            } else if (type === 'box-mid') {
+                line.innerHTML = `<span class="box">║</span><span class="box-content">${content.padEnd(48)}</span><span class="box">║</span>`;
+            } else if (type === 'box-bottom') {
+                line.innerHTML = `<span class="box">╚${'═'.repeat(48)}╝</span>`;
+            } else {
+                line.innerHTML = `<span class="output">${content}</span>`;
+            }
+            
+            terminalBody.appendChild(line);
+            terminalBody.scrollTop = terminalBody.scrollHeight;
+            return line;
+        }
+
+        function typeText(element, text, callback) {
+            let index = 0;
+            element.textContent = '';
+            
+            function type() {
+                if (index < text.length) {
+                    element.textContent += text.charAt(index);
+                    index++;
+                    setTimeout(type, typingSpeed);
+                } else if (callback) {
+                    callback();
+                }
+            }
+            type();
+        }
+
+        function addTerminalLineWithTyping(content, type, delay = 0) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    const line = addTerminalLineInstant('', type);
+                    const textElement = line.querySelector('.cmd, .comment, .result, .step, .final, .output, .header, .ascii, .box-content');
+                    
+                    if (textElement && type !== 'divider' && type !== 'box-top' && type !== 'box-bottom') {
+                        typeText(textElement, content, resolve);
+                    } else {
+                        if (type === 'divider' || type === 'box-top' || type === 'box-bottom') {
+                            // Instant for decorative lines
+                        }
+                        resolve();
+                    }
+                }, delay);
+            });
+        }
+
+        async function processQueue() {
+            if (isTyping || typingQueue.length === 0) return;
+            
+            isTyping = true;
+            while (typingQueue.length > 0) {
+                const item = typingQueue.shift();
+                if (item.instant) {
+                    addTerminalLineInstant(item.content, item.type);
+                    await new Promise(r => setTimeout(r, item.delay || 30));
+                } else {
+                    await addTerminalLineWithTyping(item.content, item.type, item.delay || 0);
+                }
+            }
+            isTyping = false;
+        }
+
+        function queueLine(content, type = 'output', options = {}) {
+            typingQueue.push({ content, type, ...options });
+            processQueue();
+        }
+
+        // ASCII Art Headers
+        function getAsciiHeader(algorithm, operation) {
+            const headers = {
+                additive: {
+                    encrypt: [
+                        // '╔══════════════════════════════════════════════════╗',
+                        // '║     _    ____  ____ ___ _____ _____     _____    ║',
+                        // '║    / \\  |  _ \\|  _ \\_ _|_   _|_ _\\ \\   / / __|   ║',
+                        // '║   / _ \\ | | | | | | | |  | |  | | \\ \\ / /| _|    ║',
+                        // '║  / ___ \\| |_| | |_| | |  | |  | |  \\ V / | |___  ║',
+                        // '║ /_/   \\_\\____/|____/___| |_| |___|  \\_/  |_____|  ║',
+                        // '║                                                  ║',
+                        // '║  >>>  C I P H E R  -  E N K R I P S I  <<<       ║',
+                        // '╚══════════════════════════════════════════════════╝'
+                    ],
+                    decrypt: [
+                        // '╔══════════════════════════════════════════════════╗',
+                        // '║     _    ____  ____ ___ _____ _____     _____    ║',
+                        // '║    / \\  |  _ \\|  _ \\_ _|_   _|_ _\\ \\   / / __|   ║',
+                        // '║   / _ \\ | | | | | | | |  | |  | | \\ \\ / /| _|    ║',
+                        // '║  / ___ \\| |_| | |_| | |  | |  | |  \\ V / | |___  ║',
+                        // '║ /_/   \\_\\____/|____/___| |_| |___|  \\_/  |_____|  ║',
+                        // '║                                                  ║',
+                        // '║  >>>  C I P H E R  -  D E K R I P S I  <<<       ║',
+                        // '╚══════════════════════════════════════════════════╝'
+                    ]
+                },
+                multiplicative: {
+                    encrypt: [
+                        // '╔══════════════════════════════════════════════════╗',
+                        // '║  __  __ _   _ _   _____ ___ ____  _     ___ ___  ║',
+                        // '║ |  \\/  | | | | | |_   _|_ _|  _ \\| |   |_ _/ __| ║',
+                        // '║ | |\\/| | | | | |   | |  | || |_) | |    | | |    ║',
+                        // '║ | |  | | |_| | |___| |  | ||  __/| |___ | | |___ ║',
+                        // '║ |_|  |_|\\___/|_____|_| |___|_|   |_____|___\\____| ║',
+                        // '║                                                  ║',
+                        // '║  >>>  C I P H E R  -  E N K R I P S I  <<<       ║',
+                        // '╚══════════════════════════════════════════════════╝'
+                    ],
+                    decrypt: [
+                        // '╔══════════════════════════════════════════════════╗',
+                        // '║  __  __ _   _ _   _____ ___ ____  _     ___ ___  ║',
+                        // '║ |  \\/  | | | | | |_   _|_ _|  _ \\| |   |_ _/ __| ║',
+                        // '║ | |\\/| | | | | |   | |  | || |_) | |    | | |    ║',
+                        // '║ | |  | | |_| | |___| |  | ||  __/| |___ | | |___ ║',
+                        // '║ |_|  |_|\\___/|_____|_| |___|_|   |_____|___\\____| ║',
+                        // '║                                                  ║',
+                        // '║  >>>  C I P H E R  -  D E K R I P S I  <<<       ║',
+                        // '╚══════════════════════════════════════════════════╝'
+                    ]
+                },
+                polyalphabetic: {
+                    encrypt: [
+                        // '╔══════════════════════════════════════════════════╗',
+                        // '║  ____   ___  _  __   ___    _    _    ____  _  _ ║',
+                        // '║ |  _ \\ / _ \\| | \\ \\ / / \\  | |  | |__|  _ \\| || |║',
+                        // '║ | |_) | | | | |  \\ V / _ \\ | |  | |__| |_) | || |║',
+                        // '║ |  __/| |_| | |___| / ___ \\| |__|  __|  __/|__  |║',
+                        // '║ |_|    \\___/|_____|_/_/  \\_\\_____|_|  |_|     |_|║',
+                        // '║            [ V I G E N E R E ]                   ║',
+                        // '║  >>>  C I P H E R  -  E N K R I P S I  <<<       ║',
+                        // '╚══════════════════════════════════════════════════╝'
+                    ],
+                    decrypt: [
+                        // '╔══════════════════════════════════════════════════╗',
+                        // '║  ____   ___  _  __   ___    _    _    ____  _  _ ║',
+                        // '║ |  _ \\ / _ \\| | \\ \\ / / \\  | |  | |__|  _ \\| || |║',
+                        // '║ | |_) | | | | |  \\ V / _ \\ | |  | |__| |_) | || |║',
+                        // '║ |  __/| |_| | |___| / ___ \\| |__|  __|  __/|__  |║',
+                        // '║ |_|    \\___/|_____|_/_/  \\_\\_____|_|  |_|     |_|║',
+                        // '║            [ V I G E N E R E ]                   ║',
+                        // '║  >>>  C I P H E R  -  D E K R I P S I  <<<       ║',
+                        // '╚══════════════════════════════════════════════════╝'
+                    ]
+                }
+            };
+            return headers[algorithm][operation];
+        }
+
+        // Process logging for algorithms with typing animation
+        async function logAdditiveProcess(text, key, isEncrypt) {
+            const k = parseInt(key) % 26;
+            const operation = isEncrypt ? 'encrypt' : 'decrypt';
+            const formula = isEncrypt ? `E(x) = (x + ${k}) mod 26` : `D(x) = (x - ${k} + 26) mod 26`;
+            
+            clearTerminal();
+            
+            // ASCII Header
+            const header = getAsciiHeader('additive', operation);
+            for (const line of header) {
+                queueLine(line, 'ascii', { instant: true, delay: 20 });
+            }
+            
+            queueLine('', 'output', { instant: true });
+            queueLine('┌─────────────────────────────────────────────────┐', 'divider', { instant: true });
+            queueLine('│  [INPUT PARAMETERS]                             │', 'ascii', { instant: true });
+            queueLine('└─────────────────────────────────────────────────┘', 'divider', { instant: true });
+            queueLine(`  Plaintext  : "${text}"`, 'command');
+            queueLine(`  Key (k)    : ${key} → ${k} (mod 26)`, 'command');
+            queueLine(`  Formula    : ${formula}`, 'comment');
+            
+            queueLine('', 'output', { instant: true });
+            queueLine('┌─────────────────────────────────────────────────┐', 'divider', { instant: true });
+            queueLine('│  [PROCESS LOG]                                  │', 'ascii', { instant: true });
+            queueLine('└─────────────────────────────────────────────────┘', 'divider', { instant: true });
+            
+            let result = '';
+            const textLower = text.toLowerCase();
+            
+            for (let i = 0; i < textLower.length; i++) {
+                const char = textLower[i];
+                const code = char.charCodeAt(0);
+                
+                if (code >= 97 && code <= 122) {
+                    const x = code - 97;
+                    let newX;
+                    if (isEncrypt) {
+                        newX = (x + k) % 26;
+                        queueLine(`  [${i+1}] '${char}' → (${x} + ${k}) mod 26 = ${newX} → '${String.fromCharCode(newX + 97)}'`, 'step');
+                    } else {
+                        newX = (x - k + 26) % 26;
+                        queueLine(`  [${i+1}] '${char}' → (${x} - ${k} + 26) mod 26 = ${newX} → '${String.fromCharCode(newX + 97)}'`, 'step');
+                    }
+                    result += String.fromCharCode(newX + 97);
+                } else {
+                    result += char;
+                    queueLine(`  [${i+1}] '${char}' → '${char}' (non-alpha, unchanged)`, 'step');
+                }
+            }
+            
+            queueLine('', 'output', { instant: true });
+            queueLine('╔═════════════════════════════════════════════════╗', 'divider', { instant: true });
+            queueLine(`║  [RESULT] >>> "${result}"`, 'final');
+            queueLine('╚═════════════════════════════════════════════════╝', 'divider', { instant: true });
+        }
+
+        async function logMultiplicativeProcess(text, key, isEncrypt) {
+            const k = parseInt(key);
+            const operation = isEncrypt ? 'encrypt' : 'decrypt';
+            
+            clearTerminal();
+            
+            // ASCII Header
+            const header = getAsciiHeader('multiplicative', operation);
+            for (const line of header) {
+                queueLine(line, 'ascii', { instant: true, delay: 20 });
+            }
+            
+            // Calculate modular inverse
+            let kInverse = 1;
+            for (let x = 1; x < 26; x++) {
+                if ((k * x) % 26 === 1) {
+                    kInverse = x;
+                    break;
+                }
+            }
+            
+            queueLine('', 'output', { instant: true });
+            queueLine('┌─────────────────────────────────────────────────┐', 'divider', { instant: true });
+            queueLine('│  [INPUT PARAMETERS]                             │', 'ascii', { instant: true });
+            queueLine('└─────────────────────────────────────────────────┘', 'divider', { instant: true });
+            queueLine(`  Plaintext  : "${text}"`, 'command');
+            queueLine(`  Key (k)    : ${k}`, 'command');
+            
+            if (isEncrypt) {
+                queueLine(`  Formula    : E(x) = (x × ${k}) mod 26`, 'comment');
+            } else {
+                queueLine(`  Formula    : D(x) = (x × k⁻¹) mod 26`, 'comment');
+                queueLine('', 'output', { instant: true });
+                queueLine('  [*] Computing modular inverse...', 'comment');
+                queueLine(`      ${k} × ${kInverse} = ${k * kInverse} ≡ 1 (mod 26)`, 'result');
+                queueLine(`      k⁻¹ = ${kInverse}`, 'result');
+            }
+            
+            queueLine('', 'output', { instant: true });
+            queueLine('┌─────────────────────────────────────────────────┐', 'divider', { instant: true });
+            queueLine('│  [PROCESS LOG]                                  │', 'ascii', { instant: true });
+            queueLine('└─────────────────────────────────────────────────┘', 'divider', { instant: true });
+            
+            let result = '';
+            const textLower = text.toLowerCase();
+            
+            for (let i = 0; i < textLower.length; i++) {
+                const char = textLower[i];
+                const code = char.charCodeAt(0);
+                
+                if (code >= 97 && code <= 122) {
+                    const x = code - 97;
+                    let newX;
+                    if (isEncrypt) {
+                        newX = (x * k) % 26;
+                        queueLine(`  [${i+1}] '${char}' → (${x} × ${k}) mod 26 = ${newX} → '${String.fromCharCode(newX + 97)}'`, 'step');
+                    } else {
+                        newX = ((x * kInverse) % 26 + 26) % 26;
+                        queueLine(`  [${i+1}] '${char}' → (${x} × ${kInverse}) mod 26 = ${newX} → '${String.fromCharCode(newX + 97)}'`, 'step');
+                    }
+                    result += String.fromCharCode(newX + 97);
+                } else {
+                    result += char;
+                    queueLine(`  [${i+1}] '${char}' → '${char}' (non-alpha, unchanged)`, 'step');
+                }
+            }
+            
+            queueLine('', 'output', { instant: true });
+            queueLine('╔═════════════════════════════════════════════════╗', 'divider', { instant: true });
+            queueLine(`║  [RESULT] >>> "${result}"`, 'final');
+            queueLine('╚═════════════════════════════════════════════════╝', 'divider', { instant: true });
+        }
+
+        async function logPolyalphabeticProcess(text, key, isEncrypt) {
+            const operation = isEncrypt ? 'encrypt' : 'decrypt';
+            const keyLower = key.toLowerCase();
+            
+            clearTerminal();
+            
+            // ASCII Header
+            const header = getAsciiHeader('polyalphabetic', operation);
+            for (const line of header) {
+                queueLine(line, 'ascii', { instant: true, delay: 20 });
+            }
+            
+            queueLine('', 'output', { instant: true });
+            queueLine('┌─────────────────────────────────────────────────┐', 'divider', { instant: true });
+            queueLine('│  [INPUT PARAMETERS]                             │', 'ascii', { instant: true });
+            queueLine('└─────────────────────────────────────────────────┘', 'divider', { instant: true });
+            queueLine(`  Plaintext  : "${text}"`, 'command');
+            queueLine(`  Key        : "${key}"`, 'command');
+            
+            if (isEncrypt) {
+                queueLine(`  Formula    : E(x) = (x + k[i]) mod 26`, 'comment');
+            } else {
+                queueLine(`  Formula    : D(x) = (x - k[i] + 26) mod 26`, 'comment');
+            }
+            
+            queueLine('', 'output', { instant: true });
+            queueLine('  [*] Key to numeric conversion:', 'comment');
+            let keyValues = '      ';
+            for (let i = 0; i < keyLower.length; i++) {
+                const kVal = keyLower.charCodeAt(i) - 97;
+                keyValues += `${keyLower[i].toUpperCase()}=${kVal} `;
+            }
+            queueLine(keyValues, 'result');
+            
+            queueLine('', 'output', { instant: true });
+            queueLine('┌─────────────────────────────────────────────────┐', 'divider', { instant: true });
+            queueLine('│  [PROCESS LOG]                                  │', 'ascii', { instant: true });
+            queueLine('└─────────────────────────────────────────────────┘', 'divider', { instant: true });
+            
+            let result = '';
+            const textLower = text.toLowerCase();
+            let keyIndex = 0;
+            
+            for (let i = 0; i < textLower.length; i++) {
+                const char = textLower[i];
+                const code = char.charCodeAt(0);
+                
+                if (code >= 97 && code <= 122) {
+                    const x = code - 97;
+                    const keyChar = keyLower[keyIndex % keyLower.length];
+                    const shift = keyChar.charCodeAt(0) - 97;
+                    let newX;
+                    
+                    if (isEncrypt) {
+                        newX = (x + shift) % 26;
+                        queueLine(`  [${i+1}] '${char}'+'${keyChar}' → (${x}+${shift}) mod 26 = ${newX} → '${String.fromCharCode(newX + 97)}'`, 'step');
+                    } else {
+                        newX = (x - shift + 26) % 26;
+                        queueLine(`  [${i+1}] '${char}'-'${keyChar}' → (${x}-${shift}+26) mod 26 = ${newX} → '${String.fromCharCode(newX + 97)}'`, 'step');
+                    }
+                    result += String.fromCharCode(newX + 97);
+                    keyIndex++;
+                } else {
+                    result += char;
+                    queueLine(`  [${i+1}] '${char}' → '${char}' (non-alpha, key index unchanged)`, 'step');
+                }
+            }
+            
+            queueLine('', 'output', { instant: true });
+            queueLine('╔═════════════════════════════════════════════════╗', 'divider', { instant: true });
+            queueLine(`║  [RESULT] >>> "${result}"`, 'final');
+            queueLine('╚═════════════════════════════════════════════════╝', 'divider', { instant: true });
+        }
+
+        // Make logProcess available globally
+        window.logProcess = function(algorithm, text, key, isEncrypt) {
+            if (algorithm === 'additive') {
+                logAdditiveProcess(text, key, isEncrypt);
+            } else if (algorithm === 'multiplicative') {
+                logMultiplicativeProcess(text, key, isEncrypt);
+            } else if (algorithm === 'polyalphabetic') {
+                logPolyalphabeticProcess(text, key, isEncrypt);
+            }
+            
+            // Auto open terminal
+            const panel = document.getElementById('terminalPanel');
+            if (!panel.classList.contains('show')) {
+                panel.classList.add('show');
+            }
+        };
+    </script>
+</body>
+
+</html>
